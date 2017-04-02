@@ -12,7 +12,7 @@ class Robot_Part
 {
 protected:
 	Robot_Part(string name, int model_number, double cost, string description, string image_filename)
-		: name(name), model_number(model_number), description(description), image_filename(image_filename) { }
+		: name(name), model_number(model_number), cost(cost), description(description), image_filename(image_filename) { }
 
 	string name;
 	int model_number;
@@ -22,6 +22,8 @@ protected:
 
 public:
 	virtual string to_string();
+	double get_cost();
+	string get_name();
 };
 
 string Robot_Part::to_string()
@@ -32,6 +34,16 @@ string Robot_Part::to_string()
 	part_stream.str("");
 	part_stream.clear();
 	return part_string;
+}
+
+string Robot_Part::get_name()
+{
+	return name;
+}
+
+double Robot_Part::get_cost()
+{
+	return cost;
 }
 
 
@@ -140,8 +152,8 @@ class Torso : public Robot_Part
 {
 private:
 
-	double battery_compartments;
-	double max_arms;
+	int battery_compartments;
+	int max_arms;
 
 public:
 	Torso(string name, int model_number, double cost, string description, string image_filename, int battery_compartments, int max_arms)
@@ -150,7 +162,20 @@ public:
 
 
 	string to_string();
+
+	int get_max_arms();
+	int get_battery_compartments();
 };
+
+int Torso::get_max_arms()
+{
+	return max_arms;
+}
+
+int Torso::get_battery_compartments()
+{
+	return battery_compartments;
+}
 
 string Torso::to_string()
 {
@@ -162,6 +187,84 @@ string Torso::to_string()
 	return torso_string;
 }
 
+
+//// ROBOT_MODEL ////
+class Robot_Model
+{
+private:
+	string name;
+	int model_number;
+	Head head;
+	Locomotor locomotor;
+	Torso torso;
+	vector<Arm> model_arms;
+	vector<Battery> model_batteries;
+
+public:
+	Robot_Model(string name, int model_number, Head head, Locomotor locomotor, Torso torso, vector<Arm> model_arms, vector<Battery> model_batteries)
+		: name(name), model_number(model_number), head(head), locomotor(locomotor), torso(torso), model_arms(model_arms), model_batteries(model_batteries) {}
+
+	int get_model_max_arms();
+	int get_model_battery_comparments();
+	double get_cost();
+	string to_string();
+};
+
+int Robot_Model::get_model_max_arms()
+{
+	return torso.get_max_arms();
+}
+
+int Robot_Model::get_model_battery_comparments()
+{
+	return torso.get_battery_compartments();
+}
+
+double Robot_Model::get_cost()
+{
+	double cost = 0.0;
+	cost += head.get_cost();
+	cost += locomotor.get_cost();
+	cost += torso.get_cost();
+	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
+	{
+		cost += i->get_cost();
+	}
+	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
+	{
+		cost += i->get_cost();
+	}
+
+	return cost;
+}
+
+string Robot_Model::to_string()
+{
+	int count = 0;
+	stringstream model_stream;
+	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "Arms: ";
+	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
+	{
+		model_stream << "\n" << count << ") " << i->get_name();
+		count++;
+	}
+	model_stream << "\nBatteries: ";
+	count = 0;
+	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
+	{
+		model_stream << "\n" << count << ") " << i->get_name();
+		count++;
+	}
+	model_stream << "\nCost: " << get_cost();
+
+	string model_string = model_stream.str();
+	
+
+	return model_string;
+}
+
+
+
 //// SHOP ////
 class Shop
 {
@@ -171,25 +274,28 @@ public:
 	void create_new_arm(Arm arm);
 	void create_new_torso(Torso torso);
 	void create_new_battery(Battery battery);
+	void create_new_model(Robot_Model model);
 
 	int number_of_heads();
 	int number_of_locomotors();
 	int number_of_arms();
 	int number_of_torsos();
 	int number_of_batteries();
+	int number_of_models();
 
 	string heads_to_string(int part_index);
 	string locomotors_to_string(int part_index);
 	string arms_to_string(int part_index);
 	string torsos_to_string(int part_index);
 	string batteries_to_string(int part_index);
+	string models_to_string(int model_index);
 
-private:
 	vector<Head> heads;
 	vector<Locomotor> locomotors;
 	vector<Arm> arms;
 	vector<Torso> torsos;
 	vector<Battery> batteries;
+	vector<Robot_Model> models;
 
 };
 
@@ -214,6 +320,11 @@ void Shop::create_new_battery(Battery battery) {
 	batteries.push_back(battery);
 }
 
+void Shop::create_new_model(Robot_Model model) {
+	models.push_back(model);
+}
+
+
 int Shop::number_of_heads() {
 	return heads.size();
 }
@@ -232,6 +343,10 @@ int Shop::number_of_torsos() {
 
 int Shop::number_of_batteries() {
 	return batteries.size();
+}
+
+int Shop::number_of_models() {
+	return models.size();
 }
 
 string Shop::heads_to_string(int part_index) {
@@ -254,7 +369,9 @@ string Shop::batteries_to_string(int part_index) {
 	return batteries[part_index].to_string();
 }
 
-
+string Shop::models_to_string(int model_index) {
+	return models[model_index].to_string();
+}
 
 
 
@@ -268,6 +385,7 @@ public:
 	string get_arm_list();
 	string get_torso_list();
 	string get_battery_list();
+	string get_model_list();
 
 private:
 	Shop& shop;
@@ -281,6 +399,8 @@ string View::get_menu() {
 
 (1) Create Robot Part
 (2) List Robot Parts
+(3) Create Robot Model
+(4) List Robot Models
 
 
 (0) Exit 
@@ -345,6 +465,19 @@ List of Robot Batteries
 )";
 	for (int i = 0; i<shop.number_of_batteries(); ++i) {
 		list += std::to_string(i) + ") " + shop.batteries_to_string(i) + '\n';
+	}
+	return list;
+}
+
+
+string View::get_model_list() {
+	string list = R"(
+--------------------
+List of Robot Models
+--------------------
+)";
+	for (int i = 0; i<shop.number_of_models(); ++i) {
+		list += std::to_string(i) + ") " + shop.models_to_string(i) + '\n';
 	}
 	return list;
 }
@@ -504,6 +637,59 @@ void Controller::execute_cmd(int cmd)
 		}
 
 	}
+
+	else if (cmd == 3) {
+		string name;
+		int model_number, selection;
+		vector<Arm> arms;
+		vector<Battery> batteries;
+
+		cout << "Name? ";
+		getline(cin, name);
+
+		cout << "Model Number? ";
+		model_number = get_int("", 999999999);
+
+		cout << view.get_head_list();
+		cout << "\nSelect Head: ";
+		selection = get_int("", shop.number_of_heads());
+		Head head = shop.heads[selection];
+
+		cout << view.get_locomotor_list();
+		cout << "\nSelect Locomotor: ";
+		selection = get_int("", shop.number_of_locomotors());
+		Locomotor locomotor = shop.locomotors[selection];
+
+		cout << "Torso? " << endl;
+		cout << view.get_torso_list();
+		cout << "\nSelect Torso: ";
+		selection = get_int("", shop.number_of_torsos());
+		Torso torso = shop.torsos[selection];
+
+		for (int i = 0; i < torso.get_max_arms(); i++)
+		{
+			cout << view.get_arm_list();
+			cout << "\nSelect Arm " << i << ": ";
+			selection = get_int("", shop.number_of_arms());
+			arms.push_back(shop.arms[selection]);
+		}
+
+		for (int i = 0; i < torso.get_battery_compartments(); i++)
+		{
+			cout << view.get_battery_list();
+			cout << "\nSelect Battery " << i << ": ";
+			selection = get_int("", shop.number_of_batteries());
+			batteries.push_back(shop.batteries[selection]);
+		}
+		
+		shop.create_new_model(Robot_Model(name, model_number, head, locomotor, torso, arms, batteries));
+
+	}
+	else if (cmd == 4)
+	{
+		cout << view.get_model_list();
+	}
+
 	else if (cmd == 0)
 	{
 		exit(0);
