@@ -1,0 +1,62 @@
+1
+0
+Head_1
+123
+It's a head
+3.50
+6
+1
+1
+Legs_1
+1234
+They're legs
+5.99
+123.67
+1
+2
+Arm_1
+1235
+It's an arm
+5.90
+7.89
+1
+3
+Torso_1
+1236
+It's a torso
+10.99
+3
+2
+1
+4
+Battery_1
+1237
+It's a battery
+8.99
+289.87
+564.67
+3
+Model_A
+1
+0
+0
+0
+0
+0
+0
+0
+0
+5
+John Doe
+8675309
+jdoe@...
+7
+Buddy Guy
+72
+9
+1
+1/12/85
+0
+0
+0
+10

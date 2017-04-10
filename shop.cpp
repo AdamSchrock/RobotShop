@@ -208,6 +208,7 @@ public:
 	int get_model_battery_comparments();
 	double get_cost();
 	string to_string();
+	string get_model_name();
 };
 
 int Robot_Model::get_model_max_arms()
@@ -238,11 +239,16 @@ double Robot_Model::get_cost()
 	return cost;
 }
 
+string Robot_Model::get_model_name()
+{
+	return name;
+}
+
 string Robot_Model::to_string()
 {
 	int count = 0;
 	stringstream model_stream;
-	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "Arms: ";
+	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "\nArms: ";
 	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
 	{
 		model_stream << "\n" << count << ") " << i->get_name();
@@ -258,10 +264,153 @@ string Robot_Model::to_string()
 	model_stream << "\nCost: " << get_cost();
 
 	string model_string = model_stream.str();
-	
-
 	return model_string;
 }
+
+
+
+
+
+////CUSTOMER////
+class Customer
+{
+private:
+	string name;
+	string phone_number;
+	string email;
+
+public:
+	Customer(string name, string phone_number, string email) : name(name), phone_number(phone_number), email(email) {}
+	
+	string get_customer_name();
+	string get_customer_phone_number();
+	string get_customer_email();
+	string to_string();
+};
+
+string Customer::get_customer_name()
+{
+	return name;
+}
+
+string Customer::get_customer_phone_number()
+{
+	return phone_number;
+}
+
+string Customer::get_customer_email()
+{
+	return email;
+}
+
+string Customer::to_string()
+{
+	stringstream customer_stream;
+	customer_stream << "Name: " << name << "\nPhone Number: " << phone_number << "\nEmail: " << email;
+
+
+	string customer_string = customer_stream.str();
+	return customer_string;
+}
+
+
+
+
+////SALES ASSOCIATE////
+class Sales_Associate
+{
+private:
+	string name;
+	int employee_number;
+
+public:
+	Sales_Associate(string name, int employee_number) : name(name), employee_number(employee_number) {}
+
+	string get_associate_name();
+	int get_employee_number();
+	string to_string();
+};
+
+string Sales_Associate::get_associate_name()
+{
+	return name;
+}
+
+int Sales_Associate::get_employee_number()
+{
+	return employee_number;
+}
+
+string Sales_Associate::to_string()
+{
+	stringstream associate_stream;
+	associate_stream << "Name: " << name << "\nEmployee Number: " << employee_number;
+
+
+	string associate_string = associate_stream.str();
+	return associate_string;
+}
+
+
+
+////ORDER////
+class Order
+{
+private:
+	int order_number;
+	string date;
+	Customer customer;
+	Sales_Associate sales_associate;
+	Robot_Model robot_model;
+	int status = 0;
+
+public:
+	Order(int order_number, string date, Customer customer, Sales_Associate sales_associate, Robot_Model robot_model) :
+		order_number(order_number), date(date), customer(customer), sales_associate(sales_associate), robot_model(robot_model) {}
+
+	int get_order_number();
+	string get_order_date();
+	int get_status();
+	string to_string();
+
+};
+
+int Order::get_order_number()
+{
+	return order_number;
+}
+
+string Order::get_order_date()
+{
+	return date;
+}
+
+int Order::get_status()
+{
+	return status;
+}
+
+string Order::to_string()
+{
+	stringstream order_stream;
+	order_stream << "Order Number: " << order_number << "\nOrder Date: " << date << "\nCustomer: " << customer.get_customer_name()
+		<< "\nSales Associate: " << sales_associate.get_associate_name() << " (" << sales_associate.get_employee_number() << ")\nModel: "
+		<< robot_model.get_model_name() << "\nStatus: ";
+
+	if (status == 0)
+	{
+		order_stream << "Pending";
+	}
+	else
+	{
+		order_stream << "Complete";
+	}
+
+
+	string order_string = order_stream.str();
+	return order_string;
+}
+
 
 
 
@@ -275,6 +424,9 @@ public:
 	void create_new_torso(Torso torso);
 	void create_new_battery(Battery battery);
 	void create_new_model(Robot_Model model);
+	void create_new_customer(Customer customer);
+	void create_new_associate(Sales_Associate sales_associate);
+	void create_new_order(Order order);
 
 	int number_of_heads();
 	int number_of_locomotors();
@@ -282,6 +434,9 @@ public:
 	int number_of_torsos();
 	int number_of_batteries();
 	int number_of_models();
+	int number_of_customers();
+	int number_of_associates();
+	int number_of_orders();
 
 	string heads_to_string(int part_index);
 	string locomotors_to_string(int part_index);
@@ -289,6 +444,9 @@ public:
 	string torsos_to_string(int part_index);
 	string batteries_to_string(int part_index);
 	string models_to_string(int model_index);
+	string customers_to_string(int customer_index);
+	string associates_to_string(int associate_index);
+	string orders_to_string(int order_index);
 
 	vector<Head> heads;
 	vector<Locomotor> locomotors;
@@ -296,7 +454,9 @@ public:
 	vector<Torso> torsos;
 	vector<Battery> batteries;
 	vector<Robot_Model> models;
-
+	vector<Customer> customers;
+	vector<Order> orders;
+	vector<Sales_Associate> sales_associates;
 };
 
 
@@ -324,6 +484,21 @@ void Shop::create_new_model(Robot_Model model) {
 	models.push_back(model);
 }
 
+void Shop::create_new_customer(Customer customer)
+{
+	customers.push_back(customer);
+}
+
+void Shop::create_new_associate(Sales_Associate sales_associate)
+{
+	sales_associates.push_back(sales_associate);
+}
+
+void Shop::create_new_order(Order order)
+{
+	orders.push_back(order);
+}
+
 
 int Shop::number_of_heads() {
 	return heads.size();
@@ -349,6 +524,19 @@ int Shop::number_of_models() {
 	return models.size();
 }
 
+int Shop::number_of_customers() {
+	return customers.size();
+}
+
+int Shop::number_of_associates() {
+	return sales_associates.size();
+}
+
+int Shop::number_of_orders() {
+	return orders.size();
+}
+
+
 string Shop::heads_to_string(int part_index) {
 	return heads[part_index].to_string();
 }
@@ -373,6 +561,17 @@ string Shop::models_to_string(int model_index) {
 	return models[model_index].to_string();
 }
 
+string Shop::customers_to_string(int customer_index) {
+	return customers[customer_index].to_string();
+}
+
+string Shop::associates_to_string(int associate_index) {
+	return sales_associates[associate_index].to_string();
+}
+
+string Shop::orders_to_string(int order_index) {
+	return orders[order_index].to_string();
+}
 
 
 //// VIEW ////
@@ -386,6 +585,9 @@ public:
 	string get_torso_list();
 	string get_battery_list();
 	string get_model_list();
+	string get_customer_list();
+	string get_associate_list();
+	string get_order_list();
 
 private:
 	Shop& shop;
@@ -401,7 +603,12 @@ string View::get_menu() {
 (2) List Robot Parts
 (3) Create Robot Model
 (4) List Robot Models
-
+(5) Add Customer
+(6) List Customers
+(7) Add Sales Associate
+(8) List Sales Associates
+(9) Place Order
+(10) List Orders
 
 (0) Exit 
 )";
@@ -482,6 +689,41 @@ List of Robot Models
 	return list;
 }
 
+string View::get_customer_list() {
+	string list = R"(
+-----------------
+List of Customers
+-----------------
+)";
+	for (int i = 0; i<shop.number_of_customers(); ++i) {
+		list += std::to_string(i) + ") " + shop.customers_to_string(i) + '\n';
+	}
+	return list;
+}
+
+string View::get_associate_list() {
+	string list = R"(
+------------------
+List of Associates
+------------------
+)";
+	for (int i = 0; i<shop.number_of_associates(); ++i) {
+		list += std::to_string(i) + ") " + shop.associates_to_string(i) + '\n';
+	}
+	return list;
+}
+
+string View::get_order_list() {
+	string list = R"(
+--------------
+List of Orders
+--------------
+)";
+	for (int i = 0; i<shop.number_of_orders(); ++i) {
+		list += std::to_string(i) + ") " + shop.orders_to_string(i) + '\n';
+	}
+	return list;
+}
 
 
 
@@ -689,6 +931,85 @@ void Controller::execute_cmd(int cmd)
 	{
 		cout << view.get_model_list();
 	}
+
+	else if (cmd == 5)
+	{
+		string name, phone_number, email;
+
+		cout << "Name? ";
+		getline(cin, name);
+
+		cout << "Phone Number? ";
+		getline(cin, phone_number);
+
+		cout << "Email? ";
+		getline(cin, email);
+
+		shop.create_new_customer(Customer(name, phone_number, email));
+	}
+
+	else if (cmd == 6)
+	{
+		cout << view.get_customer_list();
+	}
+
+	else if (cmd == 7)
+	{
+		string name;
+		int employee_number;
+
+		cout << "Name? ";
+		getline(cin, name);
+
+		cout << "Employee Number? ";
+		employee_number = get_int("", 999999999);
+
+		shop.create_new_associate(Sales_Associate(name, employee_number));
+	}
+	 
+	else if (cmd == 8)
+	{
+		cout << view.get_associate_list();
+	}
+
+	else if (cmd == 9)
+	{
+		int order_number;
+		string date;
+		
+		cout << "Order Number?" << endl;
+		order_number = get_int("", 9999999);
+
+		cout << "Date?" << endl;
+		getline(cin, date);
+
+		cout << "Customer? " << endl;
+		cout << view.get_customer_list();
+		cout << "\nSelect Customer: ";
+		int selection = get_int("", shop.number_of_customers());
+		Customer customer = shop.customers[selection];
+
+		cout << "Sales Associate? " << endl;
+		cout << view.get_associate_list();
+		cout << "\nSelect Associate: ";
+		selection = get_int("", shop.number_of_associates());
+		Sales_Associate sales_associate = shop.sales_associates[selection];
+
+		cout << "Model? " << endl;
+		cout << view.get_model_list();
+		cout << "\nSelect Model: ";
+		selection = get_int("", shop.number_of_models());
+		Robot_Model model = shop.models[selection];
+
+		shop.create_new_order(Order(order_number, date, customer, sales_associate, model));
+	}
+
+	else if (cmd == 10)
+	{
+		cout << view.get_order_list();
+	}
+
+
 
 	else if (cmd == 0)
 	{
