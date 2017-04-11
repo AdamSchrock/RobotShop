@@ -1,0 +1,43 @@
+2
+Head 1
+1
+1.99
+This is head number 1
+
+9.89
+Head #2
+2
+5.99
+this is head #2
+
+10.8
+1
+Legs 1
+1234
+5.99
+they are legs
+
+7.99
+1
+Arm 1
+3634
+7.99
+it is an arm
+
+4.56
+1
+Battery 1
+458
+6.99
+it's a battery
+
+4.32
+2.34
+1
+Torso 1
+457
+8.99
+it's a torso
+
+-858993460
+2

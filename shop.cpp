@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <fstream>
 #include <exception>
+#include <limits>
 
 using namespace std;
 
@@ -24,6 +26,7 @@ public:
 	virtual string to_string();
 	double get_cost();
 	string get_name();
+	virtual void file_write(string filename);
 };
 
 string Robot_Part::to_string()
@@ -46,6 +49,20 @@ double Robot_Part::get_cost()
 	return cost;
 }
 
+void Robot_Part::file_write(string filename)
+{
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << name << endl;
+	ofs << model_number << endl;
+	ofs << cost << endl;
+	ofs << description << endl;
+	ofs << image_filename << endl;
+
+	ofs.close();
+
+}
+
 
 //// HEAD ////
 class Head : public Robot_Part
@@ -60,6 +77,7 @@ public:
 		power(power) {}
 
 	string to_string();
+	void file_write(string filename);
 };
 
 string Head::to_string()
@@ -70,6 +88,18 @@ string Head::to_string()
 	head_stream.str("");
 	head_stream.clear();
 	return head_string;
+}
+
+void Head::file_write(string filename)
+{
+	Robot_Part::file_write(filename);
+
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << power << endl;
+
+	ofs.close();
+
 }
 
 //// LOCOMOTOR ////
@@ -83,7 +113,9 @@ public:
 	Locomotor(string name, int model_number, double cost, string description, string image_filename, double max_power)
 		: Robot_Part(name, model_number, cost, description, image_filename),
 		max_power(max_power) {}
+
 	string to_string();
+	void file_write(string filename);
 };
 
 string Locomotor::to_string()
@@ -95,6 +127,19 @@ string Locomotor::to_string()
 	locomotor_stream.clear();
 	return locomotor_string;
 }
+
+void Locomotor::file_write(string filename)
+{
+	Robot_Part::file_write(filename);
+
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << max_power << endl;
+
+	ofs.close();
+
+}
+
 
 //// ARM ////
 class Arm : public Robot_Part
@@ -109,6 +154,7 @@ public:
 		max_power(max_power) {}
 
 	string to_string();
+	void file_write(string filename);
 };
 
 string Arm::to_string()
@@ -120,6 +166,19 @@ string Arm::to_string()
 	arm_stream.clear();
 	return arm_string;
 }
+
+void Arm::file_write(string filename)
+{
+	Robot_Part::file_write(filename);
+
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << max_power << endl;
+
+	ofs.close();
+
+}
+
 
 //// BATTERY ////
 class Battery : public Robot_Part
@@ -135,6 +194,7 @@ public:
 		power_available(power_available), max_energy(max_energy) {}
 
 	string to_string();
+	void file_write(string filename);
 };
 
 string Battery::to_string()
@@ -146,6 +206,21 @@ string Battery::to_string()
 	battery_stream.clear();
 	return battery_string;
 }
+
+void Battery::file_write(string filename)
+{
+	Robot_Part::file_write(filename);
+
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << power_available << endl;
+	ofs << max_energy << endl;
+
+	ofs.close();
+
+}
+
+
 
 //// TORSO ////
 class Torso : public Robot_Part
@@ -162,6 +237,7 @@ public:
 
 
 	string to_string();
+	void file_write(string filename);
 
 	int get_max_arms();
 	int get_battery_compartments();
@@ -188,6 +264,20 @@ string Torso::to_string()
 }
 
 
+void Torso::file_write(string filename)
+{
+	Robot_Part::file_write(filename);
+
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << battery_compartments << endl;
+	ofs << max_arms << endl;
+
+	ofs.close();
+
+}
+
+
 //// ROBOT_MODEL ////
 class Robot_Model
 {
@@ -209,7 +299,31 @@ public:
 	double get_cost();
 	string to_string();
 	string get_model_name();
+	void file_write(string filename);
 };
+
+void Robot_Model::file_write(string filename)
+{
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << name << endl;
+	ofs << model_number << endl;
+	ofs << head.get_name() << endl;
+	ofs << locomotor.get_name() << endl;
+	ofs << torso.get_name() << endl;
+	ofs << model_arms.size() << endl;
+	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
+	{
+		ofs << i->get_name() << endl;
+	}
+	ofs << model_batteries.size() << endl;
+	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
+	{
+		ofs << i->get_name() << endl;
+	}
+
+	ofs.close();
+}
 
 int Robot_Model::get_model_max_arms()
 {
@@ -286,7 +400,19 @@ public:
 	string get_customer_phone_number();
 	string get_customer_email();
 	string to_string();
+	void file_write(string filename);
 };
+
+void Customer::file_write(string filename)
+{
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << name << endl;
+	ofs << phone_number << endl;
+	ofs << email << endl;
+
+	ofs.close();
+}
 
 string Customer::get_customer_name()
 {
@@ -329,7 +455,19 @@ public:
 	string get_associate_name();
 	int get_employee_number();
 	string to_string();
+	void file_write(string filename);
 };
+
+
+void Sales_Associate::file_write(string filename)
+{
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << name << endl;
+	ofs << employee_number << endl;
+
+	ofs.close();
+}
 
 string Sales_Associate::get_associate_name()
 {
@@ -372,8 +510,23 @@ public:
 	string get_order_date();
 	int get_status();
 	string to_string();
+	void file_write(string filename);
 
 };
+
+void Order::file_write(string filename)
+{
+	std::ofstream ofs(filename, std::ofstream::app);
+
+	ofs << order_number << endl;
+	ofs << date << endl;
+	ofs << customer.get_customer_name() << endl;
+	ofs << sales_associate.get_associate_name() << endl;
+	ofs << robot_model.get_model_name() << endl;
+	ofs << status << endl;
+
+	ofs.close();
+}
 
 int Order::get_order_number()
 {
@@ -428,6 +581,9 @@ public:
 	void create_new_associate(Sales_Associate sales_associate);
 	void create_new_order(Order order);
 
+	void save();
+	void load();
+
 	int number_of_heads();
 	int number_of_locomotors();
 	int number_of_arms();
@@ -458,6 +614,313 @@ public:
 	vector<Order> orders;
 	vector<Sales_Associate> sales_associates;
 };
+
+
+void Shop::save()
+{
+	remove("Robot_Parts.txt");
+
+	std::ofstream ofs("Robot_Parts.txt", std::ofstream::app);
+	ofs << number_of_heads() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_heads(); ++i) {
+		heads[i].file_write("Robot_Parts.txt");
+	}
+
+	ofs.open("Robot_Parts.txt", ios::out | ios::app);
+	ofs << number_of_locomotors() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_locomotors(); ++i) {
+		locomotors[i].file_write("Robot_Parts.txt");
+	}
+
+	ofs.open("Robot_Parts.txt", ios::out | ios::app);
+	ofs << number_of_arms() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_arms(); ++i) {
+		arms[i].file_write("Robot_Parts.txt");
+	}
+
+	ofs.open("Robot_Parts.txt", ios::out | ios::app);
+	ofs << number_of_batteries() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_batteries(); ++i) {
+		batteries[i].file_write("Robot_Parts.txt");
+	}
+
+	ofs.open("Robot_Parts.txt", ios::out | ios::app);
+	ofs << number_of_torsos() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_torsos(); ++i) {
+		torsos[i].file_write("Robot_Parts.txt");
+	}
+
+
+
+
+	remove("Robot_Models.txt");
+
+	ofs.open("Robot_Models.txt", std::ofstream::app);
+	ofs << number_of_models() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_models(); ++i) {
+		models[i].file_write("Robot_Models.txt");
+	}
+
+
+
+	remove("Customers.txt");
+
+	ofs.open("Customers.txt", std::ofstream::app);
+	ofs << number_of_customers() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_customers(); ++i) {
+		customers[i].file_write("Customers.txt");
+	}
+
+
+	remove("Sales_Associates.txt");
+
+	ofs.open("Sales_Associates.txt", std::ofstream::app);
+	ofs << number_of_associates() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_associates(); ++i) {
+		sales_associates[i].file_write("Sales_Associates.txt");
+	}
+
+
+
+	remove("Orders.txt");
+
+	ofs.open("Orders.txt", std::ofstream::app);
+	ofs << number_of_orders() << endl;
+	ofs.close();
+	for (int i = 0; i< number_of_orders(); ++i) {
+		orders[i].file_write("Orders.txt");
+	}
+}
+
+
+void Shop::load()
+{
+	int part_count, count, model_number, employee_number, max_arms, battery_compartments, order_number, status;
+	double cost, power, max_power, power_available, max_energy;
+	string name, part_name, description, image_filename, phone_number, email, date;
+
+	std::ifstream ifs("Robot_Parts.txt");
+	if (ifs.good())
+	{
+		ifs >> part_count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < part_count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> cost;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, description);
+			getline(ifs, image_filename);
+			ifs >> power;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_head(Head(name, model_number, cost, description, image_filename, power));
+		}
+		ifs >> part_count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < part_count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> cost;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, description);
+			getline(ifs, image_filename);
+			ifs >> power;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_locomotor(Locomotor(name, model_number, cost, description, image_filename, power));
+		}
+		ifs >> part_count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < part_count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> cost;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, description);
+			getline(ifs, image_filename);
+			ifs >> max_power;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_arm(Arm(name, model_number, cost, description, image_filename, max_power));
+		}
+		ifs >> part_count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < part_count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> cost;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, description);
+			getline(ifs, image_filename);
+			ifs >> power_available;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> max_energy;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_battery(Battery(name, model_number, cost, description, image_filename, power_available, max_energy));
+		}
+		ifs >> part_count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < part_count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> cost;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, description);
+			getline(ifs, image_filename);
+			ifs >> power_available;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> max_arms;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			ifs >> battery_compartments;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_torso(Torso(name, model_number, cost, description, image_filename, battery_compartments, max_arms));
+		}
+		ifs.close();
+	}
+
+
+	vector<Arm> model_arms;
+	vector<Battery> model_batteries;
+	Head *head = NULL;
+	Locomotor* locomotor = NULL;
+	Torso* torso = NULL;
+	ifs.open("Robot_Models.txt");
+	if (ifs.good()) {
+		ifs >> count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < count; i++)
+		{
+			getline(ifs, name);
+			ifs >> model_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, part_name);
+			for (vector<Head>::iterator i = heads.begin(); i != heads.end(); ++i)
+			{
+				if (part_name == i->get_name()) head = &(*i);
+			}
+			getline(ifs, part_name);
+			for (vector<Locomotor>::iterator i = locomotors.begin(); i != locomotors.end(); ++i)
+			{
+				if (part_name == i->get_name()) locomotor = &(*i);
+			}
+			getline(ifs, part_name);
+			for (vector<Torso>::iterator i = torsos.begin(); i != torsos.end(); ++i)
+			{
+				if (part_name == i->get_name()) torso = &(*i);
+			}
+			ifs >> part_count;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			for (int j = 0; j < part_count; j++)
+			{
+				getline(ifs, part_name);
+				for (vector<Arm>::iterator i = arms.begin(); i != arms.end(); ++i)
+				{
+					if (part_name == i->get_name()) model_arms.push_back(*i);
+				}
+			}
+			ifs >> part_count;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			for (int j = 0; j < part_count; j++)
+			{
+				getline(ifs, part_name);
+				for (vector<Battery>::iterator i = batteries.begin(); i != batteries.end(); ++i)
+				{
+					if (part_name == i->get_name()) model_batteries.push_back(*i);
+				}
+			}
+
+			create_new_model(Robot_Model(name, model_number, (*head), (*locomotor), (*torso), model_arms, model_batteries));
+		}
+	}
+	ifs.close();
+
+	ifs.open("Customers.txt");
+	if (ifs.good())
+	{
+		ifs >> count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < count; i++)
+		{
+			getline(ifs, name);
+			getline(ifs, phone_number);
+			getline(ifs, email);
+
+			create_new_customer(Customer(name, phone_number, email));
+		}
+	}
+	ifs.close();
+
+	ifs.open("Sales_Associates.txt");
+	if (ifs.good())
+	{
+		ifs >> count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < count; i++)
+		{
+			getline(ifs, name);
+			ifs >> employee_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+			create_new_associate(Sales_Associate(name, employee_number));
+		}
+	}
+	ifs.close();
+
+
+
+
+	Customer* customer = NULL;
+	Sales_Associate* associate = NULL;
+	Robot_Model* model = NULL;
+
+	ifs.open("Orders.txt");
+	if (ifs.good()) {
+		ifs >> count;
+		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		for (int i = 0; i < count; i++)
+		{
+			ifs >> order_number;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			getline(ifs, date);
+
+			getline(ifs, name);
+			for (vector<Customer>::iterator i = customers.begin(); i != customers.end(); ++i)
+			{
+				if (name == i->get_customer_name()) customer = &(*i);
+			}
+			getline(ifs, name);
+			for (vector<Sales_Associate>::iterator i = sales_associates.begin(); i != sales_associates.end(); ++i)
+			{
+				if (name == i->get_associate_name()) associate = &(*i);
+			}
+			getline(ifs, name);
+			for (vector<Robot_Model>::iterator i = models.begin(); i != models.end(); ++i)
+			{
+				if (name == i->get_model_name()) model = &(*i);
+			}
+
+			create_new_order(Order(order_number, date, (*customer), (*associate), (*model)));
+		}
+	}
+	ifs.close();
+
+}
 
 
 void Shop::create_new_head(Head head) {
@@ -1013,6 +1476,7 @@ void Controller::execute_cmd(int cmd)
 
 	else if (cmd == 0)
 	{
+		shop.save();
 		exit(0);
 	}
 	else
@@ -1025,6 +1489,7 @@ void Controller::execute_cmd(int cmd)
 int main()
 {
 	Shop shop;
+	shop.load();
 	View view{ shop };
 	Controller controller(shop, view);
 	controller.cli();
