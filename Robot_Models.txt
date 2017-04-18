@@ -1,13 +1,14 @@
 1
-Model 1
-576
-Head #2
-Legs 1
-Torso 1
+Optimo Primero
+325
+235.99
+Head_1
+Legs_1
+Torso_1
 2
-Arm 1
-Arm 1
+Arm_1
+Arm_2
 3
-Battery 1
-Battery 1
-Battery 1
+Battery_1
+Battery_2
+Battery_2
