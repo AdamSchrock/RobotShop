@@ -1582,11 +1582,11 @@ void Controller::execute_cmd(int cmd)
 
 int main()
 {
+	Fl_Window win(1, 1);
+	win.show();
 	Shop shop;
 	shop.load();
 	View view{ shop };
 	Controller controller(shop, view);
-	Fl_Window win(1, 1);
-	win.show();
 	controller.gui();
 }
