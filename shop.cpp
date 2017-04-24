@@ -371,19 +371,28 @@ double Robot_Model::get_cost()
 	return cost;
 }
 
+
+/*POLYMORPHISM IMPLEMENTED BELOW!
+No, it isn't pretty or necessary, but I DID create a vector of various derived-class object pointers and polymorphically obtain their values*/
 double Robot_Model::get_weight()
 {
 	double weight = 0.0;
-	weight += head.get_weight();
-	weight += locomotor.get_weight();
-	weight += torso.get_weight();
+	vector<Robot_Part*> model_components;
+	model_components.push_back(&head);
+	model_components.push_back(&locomotor);
+	model_components.push_back(&torso);
 	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
 	{
-		weight += i->get_weight();
+		model_components.push_back(&(*i));
 	}
 	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
 	{
-		weight += i->get_weight();
+		model_components.push_back(&(*i));
+	}
+
+	for (vector<Robot_Part*>::iterator i = model_components.begin(); i != model_components.end(); ++i)
+	{
+		weight += (*i)->get_weight();
 	}
 
 	return weight;
@@ -398,7 +407,7 @@ string Robot_Model::to_string()
 {
 	int count = 0;
 	stringstream model_stream;
-	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nPrice: " << price << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "\nArms: ";
+	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nPrice: " << price << "\nWeight: " << get_weight() << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "\nArms: ";
 	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
 	{
 		model_stream << "\n" << count << ") " << i->get_name();
@@ -431,7 +440,7 @@ private:
 
 public:
 	Customer(string name, string phone_number, string email) : name(name), phone_number(phone_number), email(email) {}
-	
+
 	string get_customer_name();
 	string get_customer_phone_number();
 	string get_customer_email();
@@ -892,6 +901,8 @@ void Shop::load()
 			}
 
 			create_new_model(Robot_Model(name, model_number, price, (*head), (*locomotor), (*torso), model_arms, model_batteries));
+			model_arms.clear();
+			model_batteries.clear();
 		}
 	}
 	ifs.close();
@@ -1336,14 +1347,14 @@ void Controller::execute_cmd(int cmd)
 
 		name = get_string("Name", "Name? ");
 
-		model_number = get_int_gui("Model Number", "Model Number? ", 99);
+		model_number = get_int_gui(name, "Model Number? ", 9999);
 
-		description = get_string("Description", "Description? ");
+		description = get_string(name, "Description? ");
 
-		cost_str = get_string("Cost", "Cost? ");
+		cost_str = get_string(name, "Cost? ");
 		cost = stod(cost_str);
 
-		weight_str = get_string("Weight", "Weight? ");
+		weight_str = get_string(name, "Weight? ");
 		weight = stod(weight_str);
 
 		switch (type) {
@@ -1351,7 +1362,7 @@ void Controller::execute_cmd(int cmd)
 		{
 			string power_str;
 			double power;
-			power_str = get_string("Power", "Power?");
+			power_str = get_string(name, "Power?");
 			power = stod(power_str);
 			shop.create_new_head(Head(name, model_number, cost, weight, description, "", power));
 			break;
@@ -1360,7 +1371,7 @@ void Controller::execute_cmd(int cmd)
 		{
 			string max_power_str;
 			double max_power;
-			max_power_str = get_string("Max Power", "Max Power?");
+			max_power_str = get_string(name, "Max Power?");
 			max_power = stod(max_power_str);
 			shop.create_new_locomotor(Locomotor(name, model_number, cost, weight, description, "", max_power));
 			break;
@@ -1369,7 +1380,7 @@ void Controller::execute_cmd(int cmd)
 		{
 			string max_power_str;
 			double max_power;
-			max_power_str = get_string("Max Power", "Max Power?");
+			max_power_str = get_string(name, "Max Power?");
 			max_power = stod(max_power_str);
 			shop.create_new_arm(Arm(name, model_number, cost, weight, description, "", max_power));
 			break;
@@ -1378,9 +1389,9 @@ void Controller::execute_cmd(int cmd)
 		{
 			int battery_compartments;
 			int max_arms;
-			battery_compartments = get_int_gui("Battery Compartments", "Number of Battery Compartments?", 10);
+			battery_compartments = get_int_gui(name, "Number of Battery Compartments?", 10);
 
-			max_arms = get_int_gui("Max Arms", "Number of Arms?", 10);
+			max_arms = get_int_gui(name, "Number of Arms?", 10);
 			shop.create_new_torso(Torso(name, model_number, cost, weight, description, "", battery_compartments, max_arms));
 			break;
 		}
@@ -1389,9 +1400,9 @@ void Controller::execute_cmd(int cmd)
 			string power_available_str, max_energy_str;
 			double power_available;
 			double max_energy;
-			power_available_str = get_string("Power Available", "Power Available?");
+			power_available_str = get_string(name, "Power Available?");
 			power_available = stod(power_available_str);
-			max_energy_str = get_string("Max Energy", "Max Energy?");
+			max_energy_str = get_string(name, "Max Energy?");
 			max_energy = stod(max_energy_str);
 
 			shop.create_new_battery(Battery(name, model_number, cost, weight, description, "", power_available, max_energy));
@@ -1433,54 +1444,40 @@ void Controller::execute_cmd(int cmd)
 	}
 
 	else if (cmd == 3) {
-		string name;
+		string name, price_str;
 		int model_number, selection;
 		double price;
 		vector<Arm> arms;
 		vector<Battery> batteries;
 
-		cout << "Name? ";
-		getline(cin, name);
+		name = get_string("Name", "Name? ");
 
-		cout << "Model Number? ";
-		model_number = get_int("", 999999999);
+		model_number = get_int_gui(name, "Model Number? ", 9999);
 
-		cout << "Price? ";
-		cin.clear();
-		cin >> price;
+		price_str = get_string(name, "Price? ");
+		price = stod(price_str);
 
-		cout << view.get_head_list();
-		cout << "\nSelect Head: ";
-		selection = get_int("", shop.number_of_heads());
+		selection = get_int_gui("Select Head", view.get_head_list(), shop.number_of_heads() - 1);
 		Head head = shop.heads[selection];
 
-		cout << view.get_locomotor_list();
-		cout << "\nSelect Locomotor: ";
-		selection = get_int("", shop.number_of_locomotors());
+		selection = get_int_gui("Select Locomotor", view.get_locomotor_list(), shop.number_of_locomotors() - 1);
 		Locomotor locomotor = shop.locomotors[selection];
 
-		cout << "Torso? " << endl;
-		cout << view.get_torso_list();
-		cout << "\nSelect Torso: ";
-		selection = get_int("", shop.number_of_torsos());
+		selection = get_int_gui("Select Torso", view.get_torso_list(), shop.number_of_torsos() - 1);
 		Torso torso = shop.torsos[selection];
 
 		for (int i = 0; i < torso.get_max_arms(); i++)
 		{
-			cout << view.get_arm_list();
-			cout << "\nSelect Arm " << i << ": ";
-			selection = get_int("", shop.number_of_arms());
+			selection = get_int_gui("Select Arm", view.get_arm_list(), shop.number_of_arms() - 1);
 			arms.push_back(shop.arms[selection]);
 		}
 
 		for (int i = 0; i < torso.get_battery_compartments(); i++)
 		{
-			cout << view.get_battery_list();
-			cout << "\nSelect Battery " << i << ": ";
-			selection = get_int("", shop.number_of_batteries());
+			selection = get_int_gui("Select Battery", view.get_battery_list(), shop.number_of_batteries() - 1);
 			batteries.push_back(shop.batteries[selection]);
 		}
-		
+
 		shop.create_new_model(Robot_Model(name, model_number, price, head, locomotor, torso, arms, batteries));
 
 	}
@@ -1523,7 +1520,7 @@ void Controller::execute_cmd(int cmd)
 
 		shop.create_new_associate(Sales_Associate(name, employee_number));
 	}
-	 
+
 	else if (cmd == 8)
 	{
 		cout << view.get_associate_list();
@@ -1533,7 +1530,7 @@ void Controller::execute_cmd(int cmd)
 	{
 		int order_number;
 		string date;
-		
+
 		cout << "Order Number?" << endl;
 		order_number = get_int("", 9999999);
 
@@ -1561,6 +1558,7 @@ void Controller::execute_cmd(int cmd)
 		shop.create_new_order(Order(order_number, date, customer, sales_associate, model));
 	}
 
+
 	else if (cmd == 10)
 	{
 		cout << view.get_order_list();
@@ -1582,11 +1580,11 @@ void Controller::execute_cmd(int cmd)
 
 int main()
 {
-	Fl_Window win(1, 1);
-	win.show();
 	Shop shop;
 	shop.load();
 	View view{ shop };
 	Controller controller(shop, view);
+	Fl_Window win(1, 1);
+	win.show();
 	controller.gui();
 }
