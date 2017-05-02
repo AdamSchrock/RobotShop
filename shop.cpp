@@ -93,7 +93,13 @@ public:
 
 	string to_string();
 	void file_write(string filename);
+	double get_power();
 };
+
+double Head::get_power()
+{
+	return power;
+}
 
 string Head::to_string()
 {
@@ -123,20 +129,33 @@ class Locomotor : public Robot_Part
 private:
 
 	double max_power;
+	double max_speed;
 
 public:
-	Locomotor(string name, int model_number, double cost, double weight, string description, string image_filename, double max_power)
+	Locomotor(string name, int model_number, double cost, double weight, string description, string image_filename, double max_power, double max_speed)
 		: Robot_Part(name, model_number, cost, weight, description, image_filename),
-		max_power(max_power) {}
+		max_power(max_power), max_speed(max_speed) {}
 
 	string to_string();
 	void file_write(string filename);
+	double get_power();
+	double get_speed();
 };
+
+double Locomotor::get_speed()
+{
+	return max_speed;
+}
+
+double Locomotor::get_power()
+{
+	return max_power;
+}
 
 string Locomotor::to_string()
 {
 	stringstream locomotor_stream;
-	locomotor_stream << Robot_Part::to_string() << "\nMax Power: " << max_power;
+	locomotor_stream << Robot_Part::to_string() << "\nMax Power: " << max_power << "\nMax Speed: " << max_speed;
 	string locomotor_string = locomotor_stream.str();
 	locomotor_stream.str("");
 	locomotor_stream.clear();
@@ -150,6 +169,7 @@ void Locomotor::file_write(string filename)
 	std::ofstream ofs(filename, std::ofstream::app);
 
 	ofs << max_power << endl;
+	ofs << max_speed << endl;
 
 	ofs.close();
 
@@ -170,6 +190,7 @@ public:
 
 	string to_string();
 	void file_write(string filename);
+	double get_power();
 };
 
 string Arm::to_string()
@@ -180,6 +201,11 @@ string Arm::to_string()
 	arm_stream.str("");
 	arm_stream.clear();
 	return arm_string;
+}
+
+double Arm::get_power()
+{
+	return max_power;
 }
 
 void Arm::file_write(string filename)
@@ -210,7 +236,19 @@ public:
 
 	string to_string();
 	void file_write(string filename);
+	double get_power();
+	double get_energy();
 };
+
+double Battery::get_energy()
+{
+	return max_energy;
+}
+
+double Battery::get_power()
+{
+	return power_available;
+}
 
 string Battery::to_string()
 {
@@ -317,7 +355,57 @@ public:
 	string to_string();
 	string get_model_name();
 	void file_write(string filename);
+	bool power_limited();
+	double battery_life();
+	double max_speed();
 };
+
+double Robot_Model::max_speed()
+{
+	double max_speed = locomotor.get_speed();
+
+	double total_weight = get_weight();
+	double locomotor_weight = locomotor.get_weight();
+	double ratio = (5 * locomotor_weight) / total_weight;
+	if (ratio < 1) max_speed = ratio * max_speed;
+	return max_speed;
+}
+
+double Robot_Model::battery_life()
+{
+	double energy = 0;
+	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
+	{
+		energy += 1000 * (i->get_energy());
+	}
+
+	double avg_consumption = head.get_power() + 0.15*locomotor.get_power();
+	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
+	{
+		avg_consumption += 0.4*(i->get_power());
+	}
+
+	return energy / avg_consumption;
+}
+
+bool Robot_Model::power_limited()
+{
+	double power = 0;
+	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
+	{
+		power += i->get_power();
+	}
+
+	double power_consumption = head.get_power() + locomotor.get_power();
+	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
+	{
+		power_consumption += i->get_power();
+	}
+
+	if (power_consumption > power) return True;
+
+	return false;
+}
 
 void Robot_Model::file_write(string filename)
 {
@@ -410,16 +498,21 @@ string Robot_Model::to_string()
 	model_stream << "Model Name: " << name << "\nModel Number: " << model_number << "\nPrice: " << price << "\nWeight: " << get_weight() << "\nHead: " << head.get_name() << "\n" << locomotor.get_name() << "\nTorso: " << torso.get_name() << "\nArms: ";
 	for (vector<Arm>::iterator i = model_arms.begin(); i != model_arms.end(); ++i)
 	{
-		model_stream << "\n" << count << ") " << i->get_name();
+		model_stream << "\n   " << count << ") " << i->get_name();
 		count++;
 	}
 	model_stream << "\nBatteries: ";
 	count = 0;
 	for (vector<Battery>::iterator i = model_batteries.begin(); i != model_batteries.end(); ++i)
 	{
-		model_stream << "\n" << count << ") " << i->get_name();
+		model_stream << "\n   " << count << ") " << i->get_name();
 		count++;
 	}
+	model_stream << "\nMax Speed: " << max_speed();
+	model_stream << "\nPower Limited: ";
+	if (power_limited() == True) model_stream << "Yes";
+	else model_stream << "No";
+	model_stream << "\nBattery Life: " << battery_life() << " hours";
 	model_stream << "\nCost: " << get_cost();
 
 	string model_string = model_stream.str();
@@ -749,7 +842,7 @@ void Shop::save()
 void Shop::load()
 {
 	int part_count, count, model_number, employee_number, max_arms, battery_compartments, order_number, status;
-	double cost, price, weight, power, max_power, power_available, max_energy;
+	double cost, price, weight, power, speed, max_power, power_available, max_energy;
 	string name, part_name, description, image_filename, phone_number, email, date;
 
 	std::ifstream ifs("Robot_Parts.txt");
@@ -787,7 +880,9 @@ void Shop::load()
 			getline(ifs, image_filename);
 			ifs >> power;
 			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			create_new_locomotor(Locomotor(name, model_number, cost, weight, description, image_filename, power));
+			ifs >> speed;
+			ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			create_new_locomotor(Locomotor(name, model_number, cost, weight, description, image_filename, power, speed));
 		}
 		ifs >> part_count;
 		ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -1369,11 +1464,13 @@ void Controller::execute_cmd(int cmd)
 		}
 		case 1:
 		{
-			string max_power_str;
-			double max_power;
+			string max_power_str, max_speed_str;
+			double max_power, max_speed;
 			max_power_str = get_string(name, "Max Power?");
 			max_power = stod(max_power_str);
-			shop.create_new_locomotor(Locomotor(name, model_number, cost, weight, description, "", max_power));
+			max_speed_str = get_string(name, "Max Speed?");
+			max_speed = stod(max_speed_str);
+			shop.create_new_locomotor(Locomotor(name, model_number, cost, weight, description, "", max_power, max_speed));
 			break;
 		}
 		case 2:
@@ -1425,19 +1522,19 @@ void Controller::execute_cmd(int cmd)
 		switch (type)
 		{
 		case 0:
-			cout << view.get_head_list();
+			fl_message((view.get_head_list()).c_str());
 			break;
 		case 1:
-			cout << view.get_locomotor_list();
+			fl_message((view.get_locomotor_list()).c_str());
 			break;
 		case 2:
-			cout << view.get_arm_list();
+			fl_message((view.get_arm_list()).c_str());
 			break;
 		case 3:
-			cout << view.get_torso_list();
+			fl_message((view.get_torso_list()).c_str());
 			break;
 		case 4:
-			cout << view.get_battery_list();
+			fl_message((view.get_battery_list()).c_str());
 			break;
 		}
 
@@ -1483,7 +1580,7 @@ void Controller::execute_cmd(int cmd)
 	}
 	else if (cmd == 4)
 	{
-		cout << view.get_model_list();
+		fl_message((view.get_model_list()).c_str());
 	}
 
 	else if (cmd == 5)
@@ -1532,7 +1629,7 @@ void Controller::execute_cmd(int cmd)
 		string date;
 
 		cout << "Order Number?" << endl;
-		order_number = get_int("", 9999999);
+		order_number = get_int("", 99999999);
 
 		cout << "Date?" << endl;
 		getline(cin, date);
